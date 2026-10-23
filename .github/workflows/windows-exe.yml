@@ -1,0 +1,38 @@
+name: Windows EXE Build
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build Windows desktop package
+        run: pnpm --filter @omnirush/desktop package:electron
+      - name: Upload Windows build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: omnirush-windows-build
+          path: |
+            apps/desktop/dist/**/*.exe
+            apps/desktop/release/**/*.exe
+            apps/desktop/out/**/*.exe
+          if-no-files-found: warn
+          retention-days: 14
